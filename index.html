@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>廠務設備SOP查詢系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a5f9e;
+    --primary-light: #e8f1fb;
+    --primary-dark: #0f3d6b;
+    --accent: #e85d26;
+    --gray-50: #f8f9fa;
+    --gray-100: #f1f3f5;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-500: #adb5bd;
+    --gray-700: #495057;
+    --gray-900: #212529;
+    --success: #2e7d32;
+    --radius: 10px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-900);
+    min-height: 100vh;
+    font-size: 15px;
+  }
+
+  /* ── 登入畫面 ── */
+  #loginScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 60%, #fef4f0 100%);
+  }
+
+  .login-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .login-logo {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .login-logo .icon {
+    width: 56px;
+    height: 56px;
+    background: var(--primary);
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  .login-logo .icon svg {
+    width: 30px; height: 30px; fill: white;
+  }
+
+  .login-logo h1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    line-height: 1.4;
+  }
+
+  .login-logo p {
+    font-size: 13px;
+    color: var(--gray-500);
+    margin-top: 4px;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 6px;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+    color: var(--gray-900);
+  }
+
+  .form-group input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(26,95,158,0.1);
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 8px;
+  }
+
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: var(--gray-300); cursor: not-allowed; }
+
+  .login-error {
+    background: #fff3f3;
+    border: 1px solid #ffcdd2;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #c62828;
+    margin-top: 12px;
+    display: none;
+  }
+
+  /* ── 主應用介面 ── */
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+
+  /* Header */
+  .header {
+    background: white;
+    border-bottom: 1px solid var(--gray-200);
+    padding: 0 20px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-icon {
+    width: 34px; height: 34px;
+    background: var(--primary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .header-icon svg { width: 18px; height: 18px; fill: white; }
+
+  .header-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gray-900);
+  }
+
+  .header-subtitle {
+    font-size: 11px;
+    color: var(--gray-500);
+    font-weight: 400;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .user-badge {
+    font-size: 13px;
+    color: var(--gray-700);
+  }
+
+  .btn-logout {
+    padding: 6px 14px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: 8px;
+    background: white;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--gray-700);
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .btn-logout:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  /* 主內容 */
+  .main {
+    flex: 1;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Tab 切換（查詢 / 文件列表 / 管理） */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--gray-100);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background: transparent;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-500);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── 查詢區 ── */
+  .query-box {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .query-box label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+  }
+
+  .category-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .cat-btn {
+    padding: 5px 12px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 20px;
+    background: white;
+    font-size: 12px;
+    color: var(--gray-700);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .cat-btn.active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 500;
+  }
+
+  .query-input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .query-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+    color: var(--gray-900);
+  }
+
+  .query-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(26,95,158,0.1);
+  }
+
+  .btn-search {
+    padding: 12px 20px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-search:hover { background: var(--primary-dark); }
+  .btn-search:disabled { background: var(--gray-300); cursor: not-allowed; }
+
+  .btn-search svg { width: 16px; height: 16px; fill: white; }
+
+  /* 範例問題 */
+  .examples {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .example-chip {
+    padding: 5px 12px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .example-chip:hover {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  /* 載入動畫 */
+  .loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray-500);
+    display: none;
+  }
+
+  .loading-spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--gray-200);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 回答區 */
+  .answer-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: none;
+  }
+
+  .answer-header {
+    background: var(--primary-light);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .answer-header svg { width: 16px; height: 16px; fill: var(--primary); }
+
+  .answer-header span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .answer-body {
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--gray-900);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .sources-section {
+    border-top: 1px solid var(--gray-100);
+    padding: 12px 20px;
+    background: var(--gray-50);
+  }
+
+  .sources-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-500);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .source-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    background: white;
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--gray-700);
+    margin: 3px;
+  }
+
+  /* ── 文件列表 ── */
+  .doc-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .doc-item {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .doc-info { flex: 1; min-width: 0; }
+
+  .doc-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .doc-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .badge-category {
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+
+  .badge-status-ok {
+    background: #e8f5e9;
+    color: var(--success);
+  }
+
+  .badge-status-pending {
+    background: #fff8e1;
+    color: #f57f17;
+  }
+
+  .badge-status-error {
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  .badge-type {
+    background: var(--gray-100);
+    color: var(--gray-700);
+  }
+
+  /* ── 管理區（admin only）── */
+  .admin-section {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .admin-section h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+
+  .admin-form { display: flex; flex-direction: column; gap: 10px; }
+
+  .admin-form input, .admin-form select {
+    padding: 10px 14px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    color: var(--gray-900);
+  }
+
+  .admin-form input:focus, .admin-form select:focus {
+    border-color: var(--primary);
+  }
+
+  .btn-secondary {
+    padding: 10px 18px;
+    border: 1.5px solid var(--primary);
+    border-radius: var(--radius);
+    background: white;
+    color: var(--primary);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    align-self: flex-start;
+  }
+
+  .btn-secondary:hover {
+    background: var(--primary-light);
+  }
+
+  .btn-danger {
+    padding: 8px 14px;
+    border: 1.5px solid #ffcdd2;
+    border-radius: 8px;
+    background: white;
+    color: #c62828;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-danger:hover { background: #ffebee; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--gray-900);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    z-index: 999;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: #c62828; }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--gray-500);
+  }
+
+  .empty-state svg {
+    width: 48px; height: 48px;
+    fill: var(--gray-300);
+    margin-bottom: 12px;
+  }
+
+  /* 行動版微調 */
+  @media (max-width: 600px) {
+    .main { padding: 12px; }
+    .login-card { padding: 32px 24px; margin: 16px; }
+    .header-subtitle { display: none; }
+    .query-input { font-size: 16px; } /* 避免 iOS 自動放大 */
+    .tab { font-size: 12px; padding: 7px 6px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ 登入畫面 ══════════════ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8v-2zm0-4h8v2H8v-2z"/></svg>
+      </div>
+      <h1>廠務設備<br>SOP 查詢系統</h1>
+      <p>請登入後使用</p>
+    </div>
+    <div class="form-group">
+      <label>帳號</label>
+      <input type="text" id="loginUsername" placeholder="請輸入帳號" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label>密碼</label>
+      <input type="password" id="loginPassword" placeholder="請輸入密碼" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" id="loginBtn" onclick="doLogin()">登入</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ══════════════ 主應用 ══════════════ -->
+<div id="app" style="display:none; flex-direction:column;">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8v-2zm0-4h8v2H8v-2z"/></svg>
+      </div>
+      <div>
+        <div class="header-title">廠務 SOP 查詢</div>
+        <div class="header-subtitle">廠務設備操作指導書查詢系統</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="user-badge" id="userBadge"></span>
+      <button class="btn-logout" onclick="doLogout()">登出</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="main">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('query', this)">🔍 查詢 SOP</button>
+      <button class="tab" onclick="switchTab('docs', this)">📋 文件列表</button>
+      <button class="tab admin-tab" onclick="switchTab('admin', this)" style="display:none">⚙️ 管理</button>
+    </div>
+
+    <!-- ── Tab：查詢 ── -->
+    <div class="tab-content active" id="tab-query">
+      <div class="query-box">
+        <label>分類篩選</label>
+        <div class="category-filter">
+          <button class="cat-btn active" onclick="selectCategory('全部', this)">全部</button>
+          <button class="cat-btn" onclick="selectCategory('空調', this)">空調</button>
+          <button class="cat-btn" onclick="selectCategory('消防', this)">消防</button>
+          <button class="cat-btn" onclick="selectCategory('水系統', this)">水系統</button>
+          <button class="cat-btn" onclick="selectCategory('電氣', this)">電氣</button>
+          <button class="cat-btn" onclick="selectCategory('圖控', this)">圖控</button>
+          <button class="cat-btn" onclick="selectCategory('空壓', this)">空壓</button>
+          <button class="cat-btn" onclick="selectCategory('雜項', this)">雜項</button>
+        </div>
+
+        <label>輸入問題</label>
+        <div class="query-input-row">
+          <input type="text" class="query-input" id="queryInput"
+            placeholder="例：空壓機高壓跳脫怎麼處理？"
+            onkeydown="if(event.key==='Enter') doQuery()">
+          <button class="btn-search" id="searchBtn" onclick="doQuery()">
+            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            查詢
+          </button>
+        </div>
+
+        <div class="examples">
+          <span style="font-size:12px;color:var(--gray-500);align-self:center;">範例：</span>
+          <button class="example-chip" onclick="setExample(this)">空壓機啟動步驟</button>
+          <button class="example-chip" onclick="setExample(this)">冰水主機高壓跳脫處理</button>
+          <button class="example-chip" onclick="setExample(this)">空壓機保養週期</button>
+          <button class="example-chip" onclick="setExample(this)">緊急停機步驟</button>
+        </div>
+      </div>
+
+      <!-- 載入中 -->
+      <div class="loading" id="loadingArea">
+        <div class="loading-spinner"></div>
+        <div>正在搜尋相關 SOP 文件...</div>
+      </div>
+
+      <!-- 回答 -->
+      <div class="answer-card" id="answerCard">
+        <div class="answer-header">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          <span>查詢結果</span>
+        </div>
+        <div class="answer-body" id="answerBody"></div>
+        <div class="sources-section" id="sourcesSection">
+          <div class="sources-title">資料來源</div>
+          <div id="sourcesList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab：文件列表 ── -->
+    <div class="tab-content" id="tab-docs">
+      <div id="docListArea">
+        <div class="loading" id="docLoading" style="display:flex; flex-direction:column; align-items:center; padding:40px">
+          <div class="loading-spinner"></div>
+          <div style="color:var(--gray-500);margin-top:12px">載入文件列表...</div>
+        </div>
+        <div class="doc-list" id="docList"></div>
+      </div>
+    </div>
+
+    <!-- ── Tab：管理（admin only）── -->
+    <div class="tab-content" id="tab-admin">
+
+      <!-- 新增文件 -->
+      <div class="admin-section">
+        <h3>📄 新增 SOP 文件</h3>
+        <div class="admin-form">
+          <input type="text" id="newDocId" placeholder="文件編號，例：EN-CA-002">
+          <input type="text" id="newDocName" placeholder="文件名稱，例：唐力定頻空壓機操作SOP">
+          <select id="newDocCategory">
+            <option value="">選擇分類</option>
+            <option value="空調">空調</option>
+            <option value="消防">消防</option>
+            <option value="水系統">水系統</option>
+            <option value="電氣">電氣</option>
+            <option value="圖控">圖控</option>
+            <option value="空壓">空壓</option>
+            <option value="雜項">雜項</option>
+          </select>
+          <select id="newDocFileType">
+            <option value="">選擇檔案類型</option>
+            <option value="Word">Word (.docx)</option>
+            <option value="PDF">PDF</option>
+            <option value="Excel">Excel (.xlsx)</option>
+            <option value="掃描圖片">掃描圖片</option>
+          </select>
+          <input type="text" id="newDocFileId" placeholder="Google Drive File ID">
+          <input type="text" id="newDocVersion" placeholder="版本，例：v1">
+          <input type="text" id="newDocRefIds" placeholder="參考文件編號（選填），例：REF-CA-001,REF-CA-002">
+          <button class="btn-secondary" onclick="addDocument()">新增文件</button>
+        </div>
+      </div>
+
+      <!-- 建庫 -->
+      <div class="admin-section">
+        <h3>🔄 建立知識庫</h3>
+        <p style="font-size:13px;color:var(--gray-500);margin-bottom:14px">
+          將文件內容解析並切片存入知識庫，建庫後才能被查詢使用。
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <input type="text" id="indexDocId" placeholder="輸入文件編號（單筆）"
+              style="width:100%;padding:10px 14px;border:1.5px solid var(--gray-300);border-radius:var(--radius);font-size:14px;font-family:inherit;outline:none;margin-bottom:8px">
+            <button class="btn-secondary" onclick="indexDoc()">建庫（單筆）</button>
+          </div>
+          <div style="display:flex;align-items:flex-end">
+            <button class="btn-secondary" onclick="indexAll()">全部重新建庫</button>
+          </div>
+        </div>
+        <div id="indexResult" style="margin-top:12px;font-size:13px;color:var(--gray-700)"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// 設定（部署時修改這兩個值）
+// ══════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzFcIM5kO0hpeGGSkB5tN3ZTg2lftVui14OzukAEsDw9RE-ILtyCNAyD1__j8U6rro_4Q/exec';
+
+// ══════════════════════════════════════════
+// 狀態
+// ══════════════════════════════════════════
+let token = localStorage.getItem('sop_token') || '';
+let userRole = localStorage.getItem('sop_role') || '';
+let userDisplay = localStorage.getItem('sop_display') || '';
+let selectedCategory = '全部';
+
+// ══════════════════════════════════════════
+// 初始化
+// ══════════════════════════════════════════
+window.onload = function() {
+  if (token) {
+    showApp();
+  }
+  document.getElementById('loginPassword').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+};
+
+// ══════════════════════════════════════════
+// 登入 / 登出
+// ══════════════════════════════════════════
+async function doLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+
+  if (!username || !password) {
+    showLoginError('請輸入帳號和密碼');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '登入中...';
+  errEl.style.display = 'none';
+
+  try {
+    const res = await callGAS({ action: 'login', username, password });
+    if (res.success) {
+      token = res.token;
+      userRole = res.role;
+      userDisplay = res.displayName;
+      localStorage.setItem('sop_token', token);
+      localStorage.setItem('sop_role', userRole);
+      localStorage.setItem('sop_display', userDisplay);
+      showApp();
+    } else {
+      showLoginError(res.error || '登入失敗');
+    }
+  } catch (err) {
+    showLoginError('連線失敗，請檢查網路');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '登入';
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function doLogout() {
+  token = ''; userRole = ''; userDisplay = '';
+  localStorage.removeItem('sop_token');
+  localStorage.removeItem('sop_role');
+  localStorage.removeItem('sop_display');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginPassword').value = '';
+}
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('userBadge').textContent = userDisplay;
+
+  // admin 才顯示管理 tab
+  if (userRole === 'admin') {
+    document.querySelectorAll('.admin-tab').forEach(t => t.style.display = '');
+  }
+
+  loadDocList();
+}
+
+// ══════════════════════════════════════════
+// Tab 切換
+// ══════════════════════════════════════════
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ══════════════════════════════════════════
+// 分類選擇
+// ══════════════════════════════════════════
+function selectCategory(cat, btn) {
+  selectedCategory = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════
+// 查詢
+// ══════════════════════════════════════════
+function setExample(el) {
+  document.getElementById('queryInput').value = el.textContent;
+  doQuery();
+}
+
+async function doQuery() {
+  const question = document.getElementById('queryInput').value.trim();
+  if (!question) return;
+
+  const searchBtn = document.getElementById('searchBtn');
+  const loadingArea = document.getElementById('loadingArea');
+  const answerCard = document.getElementById('answerCard');
+
+  searchBtn.disabled = true;
+  loadingArea.style.display = 'block';
+  answerCard.style.display = 'none';
+
+  try {
+    const res = await callGAS({
+      action: 'query',
+      token,
+      question,
+      category: selectedCategory,
+    });
+
+    loadingArea.style.display = 'none';
+
+    if (res.success) {
+      document.getElementById('answerBody').textContent = res.answer;
+
+      // 來源
+      const sourcesList = document.getElementById('sourcesList');
+      sourcesList.innerHTML = '';
+      if (res.sources && res.sources.length > 0) {
+        res.sources.forEach(s => {
+          const tag = document.createElement('span');
+          tag.className = 'source-tag';
+          tag.textContent = `${s.docName}（${s.section}）`;
+          sourcesList.appendChild(tag);
+        });
+        document.getElementById('sourcesSection').style.display = 'block';
+      } else {
+        document.getElementById('sourcesSection').style.display = 'none';
+      }
+
+      answerCard.style.display = 'block';
+      answerCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      showToast(res.error || '查詢失敗', 'error');
+    }
+  } catch (err) {
+    loadingArea.style.display = 'none';
+    showToast('連線失敗，請重試', 'error');
+  }
+
+  searchBtn.disabled = false;
+}
+
+// ══════════════════════════════════════════
+// 文件列表
+// ══════════════════════════════════════════
+async function loadDocList() {
+  const listEl = document.getElementById('docList');
+  const loadingEl = document.getElementById('docLoading');
+
+  try {
+    const res = await callGAS({ action: 'listDocs', token });
+    loadingEl.style.display = 'none';
+
+    if (res.success && res.docs.length > 0) {
+      listEl.innerHTML = '';
+      res.docs.forEach(doc => {
+        const statusClass = doc.status === '已建庫' ? 'badge-status-ok'
+                          : doc.status && doc.status.startsWith('錯誤') ? 'badge-status-error'
+                          : 'badge-status-pending';
+        listEl.innerHTML += `
+          <div class="doc-item">
+            <div class="doc-info">
+              <div class="doc-name">${doc.docName}</div>
+              <div class="doc-meta">
+                <span class="badge badge-category">${doc.category}</span>
+                <span class="badge badge-type">${doc.fileType}</span>
+                <span class="badge ${statusClass}">${doc.status || '待建庫'}</span>
+                <span style="font-size:11px;color:var(--gray-500)">${doc.version || ''}</span>
+              </div>
+            </div>
+            ${userRole === 'admin' ? `
+            <button class="btn-danger" onclick="quickIndex('${doc.docId}')">建庫</button>
+            ` : ''}
+          </div>`;
+      });
+    } else if (res.success) {
+      listEl.innerHTML = `
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+          <div>尚未有文件，請至管理頁面新增</div>
+        </div>`;
+    }
+  } catch (err) {
+    loadingEl.style.display = 'none';
+    listEl.innerHTML = '<div class="empty-state"><div>載入失敗，請重試</div></div>';
+  }
+}
+
+// ══════════════════════════════════════════
+// 管理功能
+// ══════════════════════════════════════════
+async function addDocument() {
+  const docId    = document.getElementById('newDocId').value.trim();
+  const docName  = document.getElementById('newDocName').value.trim();
+  const category = document.getElementById('newDocCategory').value;
+  const fileType = document.getElementById('newDocFileType').value;
+  const fileId   = document.getElementById('newDocFileId').value.trim();
+  const version  = document.getElementById('newDocVersion').value.trim();
+  const refIds   = document.getElementById('newDocRefIds').value.trim();
+
+  if (!docId || !docName || !category || !fileType || !fileId) {
+    showToast('請填寫所有必填欄位', 'error'); return;
+  }
+
+  // 直接寫入 Google Sheets（透過 GAS）
+  // 這裡用簡單方式：提示使用者手動填入（避免 GAS 程式碼過於複雜）
+  showToast(`請直接在 Google Sheets SOP_Documents 工作表新增一列：\n${docId} | ${docName}`, '');
+
+  // 清空表單
+  ['newDocId','newDocName','newDocFileId','newDocVersion','newDocRefIds']
+    .forEach(id => document.getElementById(id).value = '');
+}
+
+async function indexDoc() {
+  const docId = document.getElementById('indexDocId').value.trim();
+  if (!docId) { showToast('請輸入文件編號', 'error'); return; }
+  await runIndex({ action: 'indexDoc', token, docId });
+}
+
+async function quickIndex(docId) {
+  await runIndex({ action: 'indexDoc', token, docId });
+  await loadDocList();
+}
+
+async function indexAll() {
+  if (!confirm('確定要重新建庫所有「待建庫」的文件？這可能需要幾分鐘。')) return;
+  await runIndex({ action: 'indexAll', token });
+  await loadDocList();
+}
+
+async function runIndex(params) {
+  const resultEl = document.getElementById('indexResult');
+  if (resultEl) resultEl.textContent = '建庫中，請稍候...';
+  showToast('建庫中...');
+
+  try {
+    const res = await callGAS(params);
+    if (res.success) {
+      showToast(res.message || '建庫完成', 'success');
+      if (resultEl) resultEl.textContent = res.message || '建庫完成';
+    } else {
+      showToast(res.error || '建庫失敗', 'error');
+      if (resultEl) resultEl.textContent = '失敗：' + (res.error || '');
+    }
+  } catch (err) {
+    showToast('連線失敗', 'error');
+  }
+}
+
+// ══════════════════════════════════════════
+// 工具函數
+// ══════════════════════════════════════════
+async function callGAS(params) {
+  const response = await fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(params),
+  });
+  return await response.json();
+}
+
+function showToast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
