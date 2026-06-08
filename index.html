@@ -749,6 +749,38 @@
     <!-- ── Tab：管理（admin only）── -->
     <div class="tab-content" id="tab-admin">
 
+      <!-- 帳號管理 -->
+      <div class="admin-section">
+        <h3>👤 帳號管理</h3>
+
+        <!-- 新增帳號 -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:13px;font-weight:500;color:var(--gray-700);margin-bottom:8px">新增帳號</div>
+          <div class="admin-form">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" id="newUsername" placeholder="帳號" style="flex:1;min-width:120px;padding:10px 14px;border:1.5px solid var(--gray-300);border-radius:var(--radius);font-size:14px;font-family:inherit;outline:none">
+              <input type="text" id="newDisplayName" placeholder="顯示名稱" style="flex:1;min-width:120px;padding:10px 14px;border:1.5px solid var(--gray-300);border-radius:var(--radius);font-size:14px;font-family:inherit;outline:none">
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="password" id="newUserPassword" placeholder="密碼（至少6字元）" style="flex:1;min-width:120px;padding:10px 14px;border:1.5px solid var(--gray-300);border-radius:var(--radius);font-size:14px;font-family:inherit;outline:none">
+              <select id="newUserRole" style="flex:1;min-width:120px;padding:10px 14px;border:1.5px solid var(--gray-300);border-radius:var(--radius);font-size:14px;font-family:inherit;outline:none">
+                <option value="user">一般使用者</option>
+                <option value="admin">管理員</option>
+              </select>
+            </div>
+            <button class="btn-secondary" onclick="addUser()" style="align-self:flex-start">新增帳號</button>
+          </div>
+        </div>
+
+        <!-- 帳號列表 -->
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--gray-700);margin-bottom:8px">現有帳號</div>
+          <div id="userList" style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;color:var(--gray-500)">載入中...</div>
+          </div>
+        </div>
+      </div>
+
       <!-- 新增文件 -->
       <div class="admin-section">
         <h3>📄 新增 SOP 文件</h3>
@@ -897,6 +929,100 @@ function showApp() {
   }
 
   loadDocList();
+  if (userRole === 'admin') loadUserList();
+}
+
+// ══════════════════════════════════════════
+// 帳號管理
+// ══════════════════════════════════════════
+async function loadUserList() {
+  const listEl = document.getElementById('userList');
+  if (!listEl) return;
+
+  try {
+    const res = await callGAS({ action: 'listUsers', token });
+    if (res.success) {
+      listEl.innerHTML = '';
+      res.users.forEach(u => {
+        listEl.innerHTML += `
+          <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+            <div>
+              <span style="font-size:14px;font-weight:500;color:var(--gray-900)">${u.displayName}</span>
+              <span style="font-size:12px;color:var(--gray-500);margin-left:8px">@${u.username}</span>
+              <span style="margin-left:6px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;background:${u.role==='admin'?'#e8f1fb':'var(--gray-100)'};color:${u.role==='admin'?'var(--primary)':'var(--gray-700)'}">${u.role==='admin'?'管理員':'一般'}</span>
+              <span style="margin-left:4px;padding:2px 8px;border-radius:4px;font-size:11px;background:${u.isActive?'#e8f5e9':'#ffebee'};color:${u.isActive?'#2e7d32':'#c62828'}">${u.isActive?'啟用':'停用'}</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              <button onclick="changePassword('${u.username}')" style="padding:5px 10px;border:1.5px solid var(--gray-300);border-radius:6px;background:white;font-size:12px;color:var(--gray-700);cursor:pointer;font-family:inherit">改密碼</button>
+              ${u.username !== 'admin' ? `<button onclick="toggleUser('${u.username}')" style="padding:5px 10px;border:1.5px solid ${u.isActive?'#ffcdd2':'#c8e6c9'};border-radius:6px;background:white;font-size:12px;color:${u.isActive?'#c62828':'#2e7d32'};cursor:pointer;font-family:inherit">${u.isActive?'停用':'啟用'}</button>` : ''}
+            </div>
+          </div>`;
+      });
+    }
+  } catch (err) {
+    if (listEl) listEl.innerHTML = '<div style="font-size:13px;color:var(--gray-500)">載入失敗</div>';
+  }
+}
+
+async function addUser() {
+  const username    = document.getElementById('newUsername').value.trim();
+  const displayName = document.getElementById('newDisplayName').value.trim();
+  const password    = document.getElementById('newUserPassword').value;
+  const role        = document.getElementById('newUserRole').value;
+
+  if (!username || !displayName || !password) {
+    showToast('請填寫所有欄位', 'error'); return;
+  }
+  if (password.length < 6) {
+    showToast('密碼至少 6 個字元', 'error'); return;
+  }
+
+  try {
+    const res = await callGAS({ action: 'addUser', token, username, displayName, password, role });
+    if (res.success) {
+      showToast(res.message, 'success');
+      document.getElementById('newUsername').value = '';
+      document.getElementById('newDisplayName').value = '';
+      document.getElementById('newUserPassword').value = '';
+      loadUserList();
+    } else {
+      showToast(res.error, 'error');
+    }
+  } catch (err) {
+    showToast('連線失敗', 'error');
+  }
+}
+
+async function toggleUser(username) {
+  try {
+    const res = await callGAS({ action: 'toggleUser', token, username });
+    if (res.success) {
+      showToast(res.message, 'success');
+      loadUserList();
+    } else {
+      showToast(res.error, 'error');
+    }
+  } catch (err) {
+    showToast('連線失敗', 'error');
+  }
+}
+
+async function changePassword(username) {
+  const newPassword = prompt(`請輸入 ${username} 的新密碼（至少6字元）：`);
+  if (!newPassword) return;
+  if (newPassword.length < 6) {
+    showToast('密碼至少 6 個字元', 'error'); return;
+  }
+  try {
+    const res = await callGAS({ action: 'changePassword', token, username, newPassword });
+    if (res.success) {
+      showToast(res.message, 'success');
+    } else {
+      showToast(res.error, 'error');
+    }
+  } catch (err) {
+    showToast('連線失敗', 'error');
+  }
 }
 
 // ══════════════════════════════════════════
@@ -956,9 +1082,16 @@ async function doQuery() {
       sourcesList.innerHTML = '';
       if (res.sources && res.sources.length > 0) {
         res.sources.forEach(s => {
-          const tag = document.createElement('span');
+          const tag = document.createElement('a');
           tag.className = 'source-tag';
           tag.textContent = `${s.docName}（${s.section}）`;
+          if (s.driveUrl) {
+            tag.href = s.driveUrl;
+            tag.target = '_blank';
+            tag.style.textDecoration = 'none';
+            tag.style.cursor = 'pointer';
+            tag.title = '點擊開啟原始文件';
+          }
           sourcesList.appendChild(tag);
         });
         document.getElementById('sourcesSection').style.display = 'block';
@@ -1007,9 +1140,10 @@ async function loadDocList() {
                 <span style="font-size:11px;color:var(--gray-500)">${doc.version || ''}</span>
               </div>
             </div>
-            ${userRole === 'admin' ? `
-            <button class="btn-danger" onclick="quickIndex('${doc.docId}')">建庫</button>
-            ` : ''}
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              ${doc.driveUrl ? `<a href="${doc.driveUrl}" target="_blank" style="padding:6px 12px;border:1.5px solid var(--gray-300);border-radius:8px;background:white;font-size:12px;color:var(--gray-700);text-decoration:none;white-space:nowrap">📄 開啟原始檔</a>` : ''}
+              ${userRole === 'admin' ? `<button class="btn-danger" onclick="quickIndex('${doc.docId}')">建庫</button>` : ''}
+            </div>
           </div>`;
       });
     } else if (res.success) {
